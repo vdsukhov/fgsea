@@ -4,7 +4,8 @@ using namespace std;
 
 DataFrame fgseaMultilevelCpp(const NumericVector& enrichmentScores,
                              const NumericVector& ranks, int pathwaySize,
-                             int sampleSize, int seed,double eps, bool sign)
+                             int sampleSize, int seed,double eps,
+                             bool sign, double moveScale)
 {
     vector<double> posRanks = as<std::vector<double> >(ranks);
     for (int i = 0; i < posRanks.size(); i++) {
@@ -15,8 +16,8 @@ DataFrame fgseaMultilevelCpp(const NumericVector& enrichmentScores,
 
     const vector<double> esVector = as<std::vector<double> >(enrichmentScores);
 
-    EsRuler esRulerPos(posRanks, sampleSize, pathwaySize);
-    EsRuler esRulerNeg(negRanks, sampleSize, pathwaySize);
+    EsRuler esRulerPos(posRanks, sampleSize, pathwaySize, moveScale);
+    EsRuler esRulerNeg(negRanks, sampleSize, pathwaySize, moveScale);
 
     double maxES = *max_element(begin(esVector), end(esVector));
     double minES = *min_element(begin(esVector), end(esVector));

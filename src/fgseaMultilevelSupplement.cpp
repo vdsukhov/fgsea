@@ -24,8 +24,14 @@ pair<double, bool> calcLogCorrection(const vector<unsigned int> &probCorrector,
     }
 }
 
-EsRuler::EsRuler(const vector<double> &inpRanks, unsigned int inpSampleSize, unsigned int inpPathwaySize) :
-    ranks(inpRanks), sampleSize(inpSampleSize), pathwaySize(inpPathwaySize) {
+EsRuler::EsRuler(const vector<double> &inpRanks,
+                 unsigned int inpSampleSize,
+                 unsigned int inpPathwaySize,
+                 double inpMovesScale) :
+    ranks(inpRanks),
+    sampleSize(inpSampleSize),
+    pathwaySize(inpPathwaySize),
+    movesScale(inpMovesScale) {
     currentSamples.resize(inpSampleSize);
 }
 
@@ -37,36 +43,14 @@ void EsRuler::duplicateSamples() {
      * replaces them with samples with an enrichment score greater than the median
      * value
     */
-    vector<pair<double, int> > stats(sampleSize);
-    vector<int> posEsIndxs;
-    int totalPosEsCount = 0;
 
-    for (int sampleId = 0; sampleId < sampleSize; sampleId++) {
-        double sampleEsPos = calcPositiveES(ranks, currentSamples[sampleId]);
-        double sampleEs = calcES(ranks, currentSamples[sampleId]);
-        if (sampleEs > 0) {
-            totalPosEsCount++;
-            posEsIndxs.push_back(sampleId);
-        }
-        stats[sampleId] = make_pair(sampleEsPos, sampleId);
-    }
-    sort(stats.begin(), stats.end());
-    for (int sampleId = 0; 2 * sampleId < sampleSize; sampleId++) {
-        enrichmentScores.push_back(stats[sampleId].first);
-        if (find(posEsIndxs.begin(), posEsIndxs.end(), stats[sampleId].second) != posEsIndxs.end()) {
-            totalPosEsCount--;
-        }
-        probCorrector.push_back(totalPosEsCount);
-    }
+    vector <int> newSample(pathwaySize);
+    iota(begin(newSample), end(newSample), 0);
 
-    vector<vector<int> > new_sets;
-    for (int sampleId = 0; 2 * sampleId < sampleSize - 2; sampleId++) {
-        for (int rep = 0; rep < 2; rep++) {
-            new_sets.push_back(currentSamples[stats[sampleSize - 1 - sampleId].second]);
-        }
+
+    for (unsigned i = 0; i < currentSamples.size(); i++){
+        currentSamples[i] = newSample;
     }
-    new_sets.push_back(currentSamples[stats[sampleSize >> 1].second]);
-    swap(currentSamples, new_sets);
 }
 
 EsRuler::SampleChunks::SampleChunks(int chunksNumber) : chunkSum(chunksNumber), chunks(chunksNumber) {}
@@ -113,7 +97,7 @@ void EsRuler::extend(double ES, int seed, double eps) {
             }
         }
 
-        for (int moves = 0; moves < sampleSize * pathwaySize;) {
+        for (int moves = 0; moves < movesScale * sampleSize * pathwaySize;) {
             for (int sampleId = 0; sampleId < sampleSize; sampleId++) {
                 moves += perturbate(ranks, pathwaySize, samplesChunks[sampleId], enrichmentScores.back(), gen);
             }
