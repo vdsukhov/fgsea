@@ -1,6 +1,13 @@
 #include "fgseaMultilevelSupplement.h"
 #include "esCalculation.h"
 #include "util.h"
+#include <Rcpp.h>
+using namespace Rcpp;
+
+// [[Rcpp::export]]
+void showValue(int x) {
+    Rcout << "The value is " << x << std::endl;
+}
 
 double betaMeanLog(unsigned long a, unsigned long b) {
     return boost::math::digamma(a) - boost::math::digamma(b + 1);
@@ -37,6 +44,7 @@ EsRuler::EsRuler(const vector<double> &inpRanks,
 
 EsRuler::~EsRuler() = default;
 
+
 void EsRuler::duplicateSamples() {
     /*
      * Removes samples with an enrichment score less than the median value and
@@ -44,12 +52,33 @@ void EsRuler::duplicateSamples() {
      * value
     */
 
-    vector <int> newSample(pathwaySize);
-    iota(begin(newSample), end(newSample), 0);
+    vector<pair<double, int> > stats(sampleSize);
+    vector<int> posEsIndxs;
+    int totalPosEsCount = 0;
+
+    for (int sampleId = 0; sampleId < sampleSize; sampleId++) {
+        double sampleEsPos = calcPositiveES(ranks, currentSamples[sampleId]);
+        double sampleEs = calcES(ranks, currentSamples[sampleId]);
+        if (sampleEs > 0) {
+            totalPosEsCount++;
+            posEsIndxs.push_back(sampleId);
+        }
+        stats[sampleId] = make_pair(sampleEsPos, sampleId);
+    }
+    sort(stats.begin(), stats.end());
+    for (int sampleId = 0; 2 * sampleId < sampleSize; sampleId++) {
+        enrichmentScores.push_back(stats[sampleId].first);
+        if (find(posEsIndxs.begin(), posEsIndxs.end(), stats[sampleId].second) != posEsIndxs.end()) {
+            totalPosEsCount--;
+        }
+        probCorrector.push_back(totalPosEsCount);
+    }
 
 
+    vector<int> newGeneset(pathwaySize);
+    iota(begin(newGeneset), end(newGeneset), 0);
     for (unsigned i = 0; i < currentSamples.size(); i++){
-        currentSamples[i] = newSample;
+        currentSamples[i] = newGeneset;
     }
 }
 

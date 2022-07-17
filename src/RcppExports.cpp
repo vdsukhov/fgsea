@@ -72,12 +72,23 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// showValue
+void showValue(int x);
+RcppExport SEXP _fgsea_showValue(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type x(xSEXP);
+    showValue(x);
+    return R_NilValue;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_fgsea_calcGseaStatCumulativeBatch", (DL_FUNC) &_fgsea_calcGseaStatCumulativeBatch, 7},
     {"_fgsea_calcGseaStatCumulative", (DL_FUNC) &_fgsea_calcGseaStatCumulative, 4},
     {"_fgsea_calcGseaStatBatchCpp", (DL_FUNC) &_fgsea_calcGseaStatBatchCpp, 3},
     {"_fgsea_fgseaMultilevelCpp", (DL_FUNC) &_fgsea_fgseaMultilevelCpp, 8},
+    {"_fgsea_showValue", (DL_FUNC) &_fgsea_showValue, 1},
     {NULL, NULL, 0}
 };
 

@@ -25,3 +25,7 @@ fgseaMultilevelCpp <- function(enrichmentScores, ranks, pathwaySize, sampleSize,
     .Call('_fgsea_fgseaMultilevelCpp', PACKAGE = 'fgsea', enrichmentScores, ranks, pathwaySize, sampleSize, seed, eps, sign, moveScale)
 }
 
+showValue <- function(x) {
+    invisible(.Call('_fgsea_showValue', PACKAGE = 'fgsea', x))
+}
+
