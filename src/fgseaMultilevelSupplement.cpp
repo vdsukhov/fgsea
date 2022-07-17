@@ -44,13 +44,41 @@ void EsRuler::duplicateSamples() {
      * value
     */
 
-    vector <int> newSample(pathwaySize);
-    iota(begin(newSample), end(newSample), 0);
+    /*
+     * Removes samples with an enrichment score less than the median value and
+     * replaces them with samples with an enrichment score greater than the median
+     * value
+     */
+    vector<pair<double, int> > stats(sampleSize);
+    vector<int> posEsIndxs;
+    int totalPosEsCount = 0;
 
-
-    for (unsigned i = 0; i < currentSamples.size(); i++){
-        currentSamples[i] = newSample;
+    for (int sampleId = 0; sampleId < sampleSize; sampleId++) {
+        double sampleEsPos = calcPositiveES(ranks, currentSamples[sampleId]);
+        double sampleEs = calcES(ranks, currentSamples[sampleId]);
+        if (sampleEs > 0) {
+            totalPosEsCount++;
+            posEsIndxs.push_back(sampleId);
+        }
+        stats[sampleId] = make_pair(sampleEsPos, sampleId);
     }
+    sort(stats.begin(), stats.end());
+    for (int sampleId = 0; 2 * sampleId < sampleSize; sampleId++) {
+        enrichmentScores.push_back(stats[sampleId].first);
+        if (find(posEsIndxs.begin(), posEsIndxs.end(), stats[sampleId].second) != posEsIndxs.end()) {
+            totalPosEsCount--;
+        }
+        probCorrector.push_back(totalPosEsCount);
+    }
+
+    vector<vector<int> > new_sets;
+    for (int sampleId = 0; 2 * sampleId < sampleSize - 2; sampleId++) {
+        for (int rep = 0; rep < 2; rep++) {
+            new_sets.push_back(currentSamples[stats[sampleSize - 1 - sampleId].second]);
+        }
+    }
+    new_sets.push_back(currentSamples[stats[sampleSize >> 1].second]);
+    swap(currentSamples, new_sets);
 }
 
 EsRuler::SampleChunks::SampleChunks(int chunksNumber) : chunkSum(chunksNumber), chunks(chunksNumber) {}
