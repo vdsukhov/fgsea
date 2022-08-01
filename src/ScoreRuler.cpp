@@ -4,8 +4,12 @@
 
 
 ScoreRuler::ScoreRuler(const std::vector<std::vector<double> > & inpE,
-                       unsigned inpSampleSize, unsigned inpGenesetSize):
-    expressionMatrix(inpE), sampleSize(inpSampleSize), genesetSize(inpGenesetSize){
+                       unsigned inpSampleSize, unsigned inpGenesetSize,
+                       double inpMoveScale):
+    expressionMatrix(inpE),
+    sampleSize(inpSampleSize),
+    genesetSize(inpGenesetSize),
+    moveScale(inpMoveScale) {
     currentSample.resize(inpSampleSize), currentProfiles.resize(inpSampleSize);
 }
 
@@ -59,7 +63,7 @@ void ScoreRuler::extend(double inpScore, int seed, double eps) {
 
     duplicateSampleElements();
     while (scores.back() <= inpScore - 1e-10){
-        for (int moves = 0; moves < sampleSize * genesetSize;) {
+        for (int moves = 0; moves < moveScale * sampleSize * genesetSize;) {
             for (int elemIndex = 0; elemIndex < sampleSize; elemIndex++) {
                 moves += updateElement(currentSample[elemIndex], currentProfiles[elemIndex], scores.back(), mtGen);
             }
