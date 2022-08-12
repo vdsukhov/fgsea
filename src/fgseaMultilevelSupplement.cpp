@@ -9,11 +9,11 @@ double betaMeanLog(unsigned long a, unsigned long b) {
 pair<double, bool> calcLogCorrection(const vector<unsigned int> &probCorrector,
                                      long probCorrIndx, unsigned int sampleSize){
     double result = 0.0;
+//
+//     unsigned long halfSize = (sampleSize + 1) / 2;
+//     unsigned long remainder = sampleSize - probCorrIndx % (halfSize);
 
-    unsigned long halfSize = (sampleSize + 1) / 2;
-    unsigned long remainder = sampleSize - probCorrIndx % (halfSize);
-
-    double condProb = betaMeanLog(probCorrector[probCorrIndx] + 1, remainder);
+    double condProb = betaMeanLog(probCorrector[probCorrIndx] + 1, sampleSize);
     result += condProb;
 
     if (exp(condProb) >= 0.5){
@@ -121,8 +121,9 @@ void EsRuler::extend(double ES, int seed, double eps) {
         }
         updateSample();
         if (eps != 0){
-            unsigned long k = enrichmentScores.size() / ((sampleSize + 1) / 2);
-            if (k > - log2(0.5 * eps)) {
+            // unsigned long k = enrichmentScores.size() / ((sampleSize + 1) / 2);
+            unsigned long k = enrichmentScores.size();
+            if (k > log(0.5 * eps) / log(1.0 * sampleSize / (sampleSize + 1))) {
                 break;
             }
         }
