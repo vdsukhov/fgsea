@@ -55,8 +55,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // fgseaMultilevelCpp
-DataFrame fgseaMultilevelCpp(const NumericVector& enrichmentScores, const NumericVector& ranks, int pathwaySize, int sampleSize, int seed, double eps, bool sign);
-RcppExport SEXP _fgsea_fgseaMultilevelCpp(SEXP enrichmentScoresSEXP, SEXP ranksSEXP, SEXP pathwaySizeSEXP, SEXP sampleSizeSEXP, SEXP seedSEXP, SEXP epsSEXP, SEXP signSEXP) {
+DataFrame fgseaMultilevelCpp(const NumericVector& enrichmentScores, const NumericVector& ranks, int pathwaySize, int sampleSize, int seed, double eps, bool sign, double movesScale);
+RcppExport SEXP _fgsea_fgseaMultilevelCpp(SEXP enrichmentScoresSEXP, SEXP ranksSEXP, SEXP pathwaySizeSEXP, SEXP sampleSizeSEXP, SEXP seedSEXP, SEXP epsSEXP, SEXP signSEXP, SEXP movesScaleSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -67,7 +67,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type seed(seedSEXP);
     Rcpp::traits::input_parameter< double >::type eps(epsSEXP);
     Rcpp::traits::input_parameter< bool >::type sign(signSEXP);
-    rcpp_result_gen = Rcpp::wrap(fgseaMultilevelCpp(enrichmentScores, ranks, pathwaySize, sampleSize, seed, eps, sign));
+    Rcpp::traits::input_parameter< double >::type movesScale(movesScaleSEXP);
+    rcpp_result_gen = Rcpp::wrap(fgseaMultilevelCpp(enrichmentScores, ranks, pathwaySize, sampleSize, seed, eps, sign, movesScale));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -76,7 +77,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_fgsea_calcGseaStatCumulativeBatch", (DL_FUNC) &_fgsea_calcGseaStatCumulativeBatch, 7},
     {"_fgsea_calcGseaStatCumulative", (DL_FUNC) &_fgsea_calcGseaStatCumulative, 4},
     {"_fgsea_calcGseaStatBatchCpp", (DL_FUNC) &_fgsea_calcGseaStatBatchCpp, 3},
-    {"_fgsea_fgseaMultilevelCpp", (DL_FUNC) &_fgsea_fgseaMultilevelCpp, 7},
+    {"_fgsea_fgseaMultilevelCpp", (DL_FUNC) &_fgsea_fgseaMultilevelCpp, 8},
     {NULL, NULL, 0}
 };
 

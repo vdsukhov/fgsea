@@ -16,6 +16,7 @@ private:
     const vector<double> &ranks;
     const unsigned int sampleSize;
     const unsigned int pathwaySize;
+    const double movesScale;
 
 
     vector<double> enrichmentScores;
@@ -42,7 +43,8 @@ private:
 
 public:
 
-    EsRuler(const vector<double> &inpRanks, unsigned int inpSampleSize, unsigned int inpPathwaySize);
+    EsRuler(const vector<double> &inpRanks, unsigned int inpSampleSize,
+            unsigned int inpPathwaySize, double inpMovesScale);
 
     ~EsRuler();
 

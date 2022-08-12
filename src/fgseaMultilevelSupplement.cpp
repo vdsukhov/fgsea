@@ -24,8 +24,12 @@ pair<double, bool> calcLogCorrection(const vector<unsigned int> &probCorrector,
     }
 }
 
-EsRuler::EsRuler(const vector<double> &inpRanks, unsigned int inpSampleSize, unsigned int inpPathwaySize) :
-    ranks(inpRanks), sampleSize(inpSampleSize), pathwaySize(inpPathwaySize) {
+EsRuler::EsRuler(const vector<double> &inpRanks,
+                 unsigned int inpSampleSize,
+                 unsigned int inpPathwaySize,
+                 double inpMovesScale) :
+    ranks(inpRanks), sampleSize(inpSampleSize),
+    pathwaySize(inpPathwaySize), movesScale(inpMovesScale) {
     currentSamples.resize(inpSampleSize);
 }
 
@@ -115,7 +119,7 @@ void EsRuler::extend(double ES, int seed, double eps) {
 
     updateSample();
     while (enrichmentScores.back() <= ES - 1e-10){
-        for (int moves = 0; moves < pathwaySize;) {
+        for (int moves = 0; moves < pathwaySize * movesScale;) {
             // moves += perturbate(ranks, pathwaySize, currentSamples[0], enrichmentScores.back(), gen);
             moves += perturbate(ranks, currentSamples[0], enrichmentScores.back(), gen);
         }
