@@ -24,7 +24,7 @@ private:
 
     vector<unsigned int> probCorrector;
 
-    void duplicateSamples();
+    // void duplicateSamples();
     void updateSample();
 
     // vector<int> chunkLastElement;

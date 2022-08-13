@@ -62,7 +62,7 @@ void EsRuler::updateSample() {
     for (int sampleId = 0; sampleId < sampleSize; sampleId++) {
         newSamples.push_back(currentSamples[stats[sampleId].second]);
     }
-    newSamples[0] = newSamples[1];
+    newSamples[0] = newSamples.back();
     swap(currentSamples, newSamples);
 }
 
@@ -119,9 +119,12 @@ void EsRuler::extend(double ES, int seed, double eps) {
 
     updateSample();
     while (enrichmentScores.back() <= ES - 1e-10){
+        double scoreThreshold = calcPositiveES(ranks, currentSamples.back());
         for (int moves = 0; moves < pathwaySize * movesScale;) {
             // moves += perturbate(ranks, pathwaySize, currentSamples[0], enrichmentScores.back(), gen);
+
             moves += perturbate(ranks, currentSamples[0], enrichmentScores.back(), gen);
+            // moves += perturbate(ranks, currentSamples[0], scoreThreshold, gen);
         }
         updateSample();
         if (eps != 0){
