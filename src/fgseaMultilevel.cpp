@@ -16,16 +16,16 @@ DataFrame fgseaMultilevelCpp(const NumericVector& enrichmentScores,
 
     const vector<double> esVector = as<std::vector<double> >(enrichmentScores);
 
-    EsRuler esRulerPos(posRanks, sampleSize, pathwaySize, movesScale);
-    EsRuler esRulerNeg(negRanks, sampleSize, pathwaySize, movesScale);
+    EsRuler esRulerPos(posRanks, sampleSize, pathwaySize, seed, movesScale);
+    EsRuler esRulerNeg(negRanks, sampleSize, pathwaySize, seed, movesScale);
 
     double maxES = *max_element(begin(esVector), end(esVector));
     double minES = *min_element(begin(esVector), end(esVector));
     if (maxES >= 0){
-        esRulerPos.extend(abs(maxES), seed, eps);
+        esRulerPos.extend(abs(maxES), eps);
     }
     if (minES < 0){
-        esRulerNeg.extend(abs(minES), seed, eps);
+        esRulerNeg.extend(abs(minES), eps);
     }
 
     vector<double> pvalRes;

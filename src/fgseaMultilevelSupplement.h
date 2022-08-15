@@ -16,6 +16,8 @@ private:
     const vector<double> &ranks;
     const unsigned int sampleSize;
     const unsigned int pathwaySize;
+    const int seed;
+    mt19937 gen;
     const double movesScale;
 
 
@@ -44,11 +46,11 @@ private:
 public:
 
     EsRuler(const vector<double> &inpRanks, unsigned int inpSampleSize,
-            unsigned int inpPathwaySize, double inpMovesScale);
+            unsigned int inpPathwaySize, int inpSeed, double inpMovesScale);
 
     ~EsRuler();
 
-    void extend(double ES, int seed, double eps);
+    void extend(double ES, double eps);
 
     pair<double, bool> getPvalue(double ES, double eps, bool sign);
 };
@@ -58,7 +60,7 @@ double betaMeanLog(unsigned long a, unsigned long b);
 pair<double, bool> calcLogCorrection(const vector<unsigned int> &probCorrector,
                                      long probCorrIndx, unsigned int sampleSize);
 
-int perturbate(const vector<double> &ranks, vector<int> &sample, double bound, mt19937 &rng);
+int perturbate(const vector<double> &ranks, vector<int> &sample, double bound, mt19937 &gen);
 
 
 #endif //FGSEAMULTILEVELCPP_FGSEAMULTILEVELSUPPLEMENT_H

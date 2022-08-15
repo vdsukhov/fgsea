@@ -27,10 +27,11 @@ pair<double, bool> calcLogCorrection(const vector<unsigned int> &probCorrector,
 EsRuler::EsRuler(const vector<double> &inpRanks,
                  unsigned int inpSampleSize,
                  unsigned int inpPathwaySize,
-                 double inpMovesScale) :
-    ranks(inpRanks), sampleSize(inpSampleSize),
-    pathwaySize(inpPathwaySize), movesScale(inpMovesScale) {
+                 int inpSeed, double inpMovesScale) :
+    ranks(inpRanks), sampleSize(inpSampleSize), pathwaySize(inpPathwaySize),
+    seed(inpSeed), movesScale(inpMovesScale) {
     currentSamples.resize(inpSampleSize);
+    gen.seed(seed);
 }
 
 EsRuler::~EsRuler() = default;
@@ -62,7 +63,10 @@ void EsRuler::updateSample() {
     for (int sampleId = 0; sampleId < sampleSize; sampleId++) {
         newSamples.push_back(currentSamples[stats[sampleId].second]);
     }
-    newSamples[0] = newSamples.back();
+
+    uniform_int_distribution<> uid_k(1, sampleSize - 1);
+
+    newSamples[0] = newSamples[uid_k(gen)];
     swap(currentSamples, newSamples);
 }
 
@@ -106,8 +110,8 @@ void EsRuler::updateSample() {
 
 // EsRuler::SampleChunks::SampleChunks(int chunksNumber) : chunkSum(chunksNumber), chunks(chunksNumber) {}
 
-void EsRuler::extend(double ES, int seed, double eps) {
-    mt19937 gen(seed);
+void EsRuler::extend(double ES, double eps) {
+
 
     for (int sampleId = 0; sampleId < sampleSize; sampleId++) {
         currentSamples[sampleId] = combination(0, ranks.size() - 1, pathwaySize, gen);
@@ -119,12 +123,10 @@ void EsRuler::extend(double ES, int seed, double eps) {
 
     updateSample();
     while (enrichmentScores.back() <= ES - 1e-10){
-        double scoreThreshold = calcPositiveES(ranks, currentSamples.back());
         for (int moves = 0; moves < pathwaySize * movesScale;) {
             // moves += perturbate(ranks, pathwaySize, currentSamples[0], enrichmentScores.back(), gen);
 
             moves += perturbate(ranks, currentSamples[0], enrichmentScores.back(), gen);
-            // moves += perturbate(ranks, currentSamples[0], scoreThreshold, gen);
         }
         updateSample();
         if (eps != 0){
@@ -397,7 +399,7 @@ pair<double, bool> EsRuler::getPvalue(double ES, double eps, bool sign) {
 
 
 
-int perturbate(const vector<double> &ranks, vector<int> &sample, double bound, mt19937 &rng) {
+int perturbate(const vector<double> &ranks, vector<int> &sample, double bound, mt19937 &gen) {
     double pertPrmtr = 0.1;
     int n = (int) ranks.size();
     int k = (int) sample.size();
@@ -410,11 +412,11 @@ int perturbate(const vector<double> &ranks, vector<int> &sample, double bound, m
     int iters = max(1, (int) (k * pertPrmtr));
     int moves = 0;
     for (int i = 0; i < iters; i++) {
-        int id = uid_k(rng);
+        int id = uid_k(gen);
         int old = sample[id];
         NS -= ranks[sample[id]];
 
-        sample[id] = uid_n(rng);
+        sample[id] = uid_n(gen);
         while (id > 0 && sample[id] < sample[id - 1]) {
             swap(sample[id], sample[id - 1]);
             id--;
