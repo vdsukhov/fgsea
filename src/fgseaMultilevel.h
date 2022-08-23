@@ -8,6 +8,6 @@ using namespace Rcpp;
 DataFrame fgseaMultilevelCpp(const NumericVector& enrichmentScores,
                              const NumericVector& ranks,
                              int pathwaySize, int sampleSize,
-                             int seed, double eps,
-                             bool sign, double moveScale = 1.0);
+                             int seed, double eps, bool sign,
+                             double moveScale = 1.0, bool logStatus = false);
 

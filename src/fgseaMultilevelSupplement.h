@@ -8,6 +8,10 @@
 #include <algorithm>
 #include <boost/math/special_functions/digamma.hpp>
 
+#include "esCalculation.h"
+#include "util.h"
+#include "Rcpp.h"
+
 using namespace std;
 
 class EsRuler {
@@ -17,6 +21,7 @@ private:
     const unsigned int sampleSize;
     const unsigned int pathwaySize;
     const double movesScale;
+    const bool logStatus;
 
 
     vector<double> enrichmentScores;
@@ -45,7 +50,8 @@ public:
     EsRuler(const vector<double> &inpRanks,
             unsigned int inpSampleSize,
             unsigned int inpPathwaySize,
-            double inpMovesScale);
+            double inpMovesScale,
+            bool inpLog);
 
     ~EsRuler();
 
