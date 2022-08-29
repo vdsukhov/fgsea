@@ -1,6 +1,4 @@
 #include "fgseaMultilevelSupplement.h"
-#include "esCalculation.h"
-#include "util.h"
 
 double betaMeanLog(unsigned long a, unsigned long b) {
     return boost::math::digamma(a) - boost::math::digamma(b + 1);
@@ -37,7 +35,7 @@ EsRuler::EsRuler(const vector<double> &inpRanks,
 EsRuler::~EsRuler() = default;
 
 
-void EsRuler::updateSample() {
+int EsRuler::updateSample() {
     vector<pair<double, int> > stats(sampleSize);
     vector<int> posEsIndxs;
     int totalPosEsCount = 0;
@@ -59,15 +57,19 @@ void EsRuler::updateSample() {
     }
     probCorrector.push_back(totalPosEsCount);
 
-    vector<vector<int> > newSamples;
-    for (int sampleId = 0; sampleId < sampleSize; sampleId++) {
-        newSamples.push_back(currentSamples[stats[sampleId].second]);
-    }
+    // vector<vector<int> > newSamples;
+    // for (int sampleId = 0; sampleId < sampleSize; sampleId++) {
+    //     newSamples.push_back(currentSamples[stats[sampleId].second]);
+    // }
+    //
+
 
     uniform_int_distribution<> uid_k(1, sampleSize - 1);
-
-    newSamples[0] = newSamples[uid_k(gen)];
-    swap(currentSamples, newSamples);
+    currentSamples[stats[0].second] = currentSamples[stats[uid_k(gen)].second];
+    return stats[0].second;
+//
+//     newSamples[0] = newSamples[uid_k(gen)];
+//     swap(currentSamples, newSamples);
 }
 
 // void EsRuler::duplicateSamples() {
@@ -121,14 +123,19 @@ void EsRuler::extend(double ES, double eps) {
 
     vector<int> tmp(sampleSize);
 
-    updateSample();
+    // int totalSteps = 0;
+    double totalSteps = 0;
+
+    int genesetIndex = updateSample();
     while (enrichmentScores.back() <= ES - 1e-10){
         for (int moves = 0; moves < pathwaySize * movesScale;) {
             // moves += perturbate(ranks, pathwaySize, currentSamples[0], enrichmentScores.back(), gen);
 
-            moves += perturbate(ranks, currentSamples[0], enrichmentScores.back(), gen);
+            moves += perturbate(ranks, currentSamples[genesetIndex], enrichmentScores.back(), gen);
+            totalSteps += max(1, (int) (pathwaySize * 0.1));
         }
-        updateSample();
+        genesetIndex = updateSample();
+
         if (eps != 0){
             // unsigned long k = enrichmentScores.size() / ((sampleSize + 1) / 2);
             unsigned long k = enrichmentScores.size();
@@ -137,6 +144,7 @@ void EsRuler::extend(double ES, double eps) {
             }
         }
     }
+    Rcpp::Rcout << totalSteps << "\n";
 }
 
 
@@ -209,8 +217,7 @@ void EsRuler::extend(double ES, double eps) {
 
 
 pair<double, bool> EsRuler::getPvalue(double ES, double eps, bool sign) {
-
-
+    // Rcpp::Rcout << enrichmentScores.size() << "\n";
     unsigned long halfSize = (sampleSize + 1) / 2;
 
     auto it = enrichmentScores.begin();
@@ -438,6 +445,7 @@ int perturbate(const vector<double> &ranks, vector<int> &sample, double bound, m
                 swap(sample[id], sample[id + 1]);
                 id++;
             }
+        // moves++;
         } else {
             moves++;
         }

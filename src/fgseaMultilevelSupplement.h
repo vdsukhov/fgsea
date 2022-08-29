@@ -8,6 +8,10 @@
 #include <algorithm>
 #include <boost/math/special_functions/digamma.hpp>
 
+#include "esCalculation.h"
+#include "util.h"
+#include "Rcpp.h"
+
 using namespace std;
 
 class EsRuler {
@@ -27,7 +31,7 @@ private:
     vector<unsigned int> probCorrector;
 
     // void duplicateSamples();
-    void updateSample();
+    int updateSample();
 
     // vector<int> chunkLastElement;
     // int chunksNumber;
