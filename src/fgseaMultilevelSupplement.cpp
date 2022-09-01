@@ -128,8 +128,9 @@ void EsRuler::extend(double ES, int seed, double eps) {
 
         // int nSuccess = 0, nFailure = 0, nTotal = 0;
         int nTriesPerLevel = max(1, (int) (pathwaySize * 0.1));
+        double nTotal = 0;
 
-        int nTotal = 0, nSuccess = 0, nFailure = 0;
+        // int nTotal = 0, nSuccess = 0, nFailure = 0;
 
         for (int moves = 0; moves < movesScale * sampleSize * pathwaySize;) {
             for (int sampleId = 0; sampleId < sampleSize; sampleId++) {
@@ -137,17 +138,9 @@ void EsRuler::extend(double ES, int seed, double eps) {
                 moves += nSuccessPerLevel;
 
                 nTotal += nTriesPerLevel;
-                nSuccess += nSuccessPerLevel;
-                nFailure += (nTriesPerLevel - nSuccessPerLevel);
             }
 
 
-        }
-
-        if (logStatus){
-            Rcpp::Rcout << "total: " << nTotal << "\t";
-            Rcpp::Rcout << "success: " << nSuccess << "\t";
-            Rcpp::Rcout << "failure: " << nFailure  << "\n";
         }
 
         for (int i = 0; i < sampleSize; ++i) {
@@ -157,6 +150,9 @@ void EsRuler::extend(double ES, int seed, double eps) {
                     currentSamples[i].push_back(pos);
                 }
             }
+        }
+        if (logStatus){
+            Rcpp::Rcout << nTotal << "\t";
         }
 
         duplicateSamples();
