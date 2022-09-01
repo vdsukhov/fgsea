@@ -101,6 +101,10 @@ void EsRuler::extend(double ES, int seed, double eps) {
     vector<SampleChunks> samplesChunks(sampleSize, SampleChunks(chunksNumber));
 
     duplicateSamples();
+
+    double nTotal = 0;
+    int nTriesPerLevel = max(1, (int) (pathwaySize * 0.1));
+
     while (enrichmentScores.back() <= ES - 1e-10){
         for (int i = 0, pos = 0; i < chunksNumber - 1; ++i) {
             pos += (pathwaySize + i) / chunksNumber;
@@ -126,12 +130,6 @@ void EsRuler::extend(double ES, int seed, double eps) {
             }
         }
 
-        // int nSuccess = 0, nFailure = 0, nTotal = 0;
-        int nTriesPerLevel = max(1, (int) (pathwaySize * 0.1));
-        double nTotal = 0;
-
-        // int nTotal = 0, nSuccess = 0, nFailure = 0;
-
         for (int moves = 0; moves < movesScale * sampleSize * pathwaySize;) {
             for (int sampleId = 0; sampleId < sampleSize; sampleId++) {
                 int nSuccessPerLevel = perturbate(ranks, pathwaySize, samplesChunks[sampleId], enrichmentScores.back(), gen);
@@ -151,9 +149,6 @@ void EsRuler::extend(double ES, int seed, double eps) {
                 }
             }
         }
-        if (logStatus){
-            Rcpp::Rcout << nTotal << "\t";
-        }
 
         duplicateSamples();
         if (eps != 0){
@@ -162,6 +157,9 @@ void EsRuler::extend(double ES, int seed, double eps) {
                 break;
             }
         }
+    }
+    if (logStatus){
+        Rcpp::Rcout << nTotal << "\n";
     }
 }
 
