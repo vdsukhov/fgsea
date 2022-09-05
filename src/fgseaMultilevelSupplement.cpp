@@ -38,7 +38,7 @@ EsRuler::EsRuler(const vector<double> &inpRanks,
 
 EsRuler::~EsRuler() = default;
 
-void EsRuler::duplicateSamples() {
+void EsRuler::duplicateSamples(mt19937 &rng) {
     /*
      * Removes samples with an enrichment score less than the median value and
      * replaces them with samples with an enrichment score greater than the median
@@ -78,7 +78,11 @@ void EsRuler::duplicateSamples() {
             new_sets.push_back(currentSamples[stats[sampleSize - 1 - sampleId].second]);
         }
     }
-    new_sets.push_back(currentSamples[stats[sampleSize >> 1].second]);
+
+    uniform_int_distribution<> uid_k(0, sampleSize - 2);
+    new_sets.push_back(new_sets[uid_k(rng)]);
+
+    // new_sets.push_back(currentSamples[stats[sampleSize >> 1].second]);
     swap(currentSamples, new_sets);
 }
 
@@ -100,7 +104,7 @@ void EsRuler::extend(double ES, int seed, double eps) {
     vector<int> tmp(sampleSize);
     vector<SampleChunks> samplesChunks(sampleSize, SampleChunks(chunksNumber));
 
-    duplicateSamples();
+    duplicateSamples(gen);
 
     double nTotal = 0;
     int nTriesPerLevel = max(1, (int) (pathwaySize * 0.1));
@@ -150,7 +154,7 @@ void EsRuler::extend(double ES, int seed, double eps) {
             }
         }
 
-        duplicateSamples();
+        duplicateSamples(gen);
         if (eps != 0){
             unsigned long k = enrichmentScores.size() / ((sampleSize + 1) / 2);
             if (k > - log2(0.5 * eps)) {

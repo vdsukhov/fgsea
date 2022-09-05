@@ -29,7 +29,7 @@ private:
 
     vector<unsigned int> probCorrector;
 
-    void duplicateSamples();
+    void duplicateSamples(mt19937 &rng);
 
     vector<int> chunkLastElement;
     int chunksNumber;
