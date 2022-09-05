@@ -133,8 +133,8 @@ void EsRuler::extend(double ES, int seed, double eps) {
         for (int moves = 0; moves < movesScale * sampleSize * pathwaySize;) {
             for (int sampleId = 0; sampleId < sampleSize; sampleId++) {
                 int nSuccessPerLevel = perturbate(ranks, pathwaySize, samplesChunks[sampleId], enrichmentScores.back(), gen);
-                moves += nSuccessPerLevel;
-
+                // moves += nSuccessPerLevel;
+                moves += nTriesPerLevel;
                 nTotal += nTriesPerLevel;
             }
 
