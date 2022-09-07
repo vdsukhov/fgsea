@@ -73,14 +73,22 @@ void EsRuler::duplicateSamples(mt19937 &rng) {
     }
 
     vector<vector<int> > new_sets;
-    for (int sampleId = 0; 2 * sampleId < sampleSize - 2; sampleId++) {
-        for (int rep = 0; rep < 2; rep++) {
-            new_sets.push_back(currentSamples[stats[sampleSize - 1 - sampleId].second]);
-        }
+    // for (int sampleId = 0; 2 * sampleId < sampleSize - 2; sampleId++) {
+    //     for (int rep = 0; rep < 2; rep++) {
+    //         new_sets.push_back(currentSamples[stats[sampleSize - 1 - sampleId].second]);
+    //     }
+    // }
+    for (unsigned sampleId = 0; 2 * sampleId < sampleSize - 2; sampleId++){
+        new_sets.push_back(currentSamples[stats[sampleSize - 1 - sampleId].second]);
+    }
+    uniform_int_distribution<> uid_k(0, new_sets.size() - 1);
+
+    for (unsigned i = 0; new_sets.size() < sampleSize; i++){
+        new_sets.push_back(new_sets[uid_k(rng)]);
     }
 
-    uniform_int_distribution<> uid_k(0, sampleSize - 2);
-    new_sets.push_back(new_sets[uid_k(rng)]);
+    // uniform_int_distribution<> uid_k(0, sampleSize - 2);
+    // new_sets.push_back(new_sets[uid_k(rng)]);
 
     // new_sets.push_back(currentSamples[stats[sampleSize >> 1].second]);
     swap(currentSamples, new_sets);
