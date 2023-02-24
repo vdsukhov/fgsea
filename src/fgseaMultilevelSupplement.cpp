@@ -99,14 +99,21 @@ void EsRuler::extend(double ES, int seed, double eps) {
 
     while (enrichmentScores.back() <= ES - 1e-10){
 
-        poisson_distribution<int> poissonDistr(movesScale * pathwaySize);
+        // poisson_distribution<int> poissonDistr(movesScale * pathwaySize);
 
-        for (int sampleId = 0; sampleId < sampleSize; sampleId++){
-            int nStepToDo = poissonDistr(gen);
-            for (int moves = 0; moves < nStepToDo;) {
-                moves += perturbate(ranks, currentSamples[sampleId], enrichmentScores.back(), gen);
+        vector<int> moves(sampleSize, 0);
+        while (*min_element(begin(moves), end(moves)) < movesScale * pathwaySize){
+            for (int sampleId = 0; sampleId < sampleSize; sampleId++){
+                moves[sampleId] += perturbate(ranks, currentSamples[sampleId], enrichmentScores.back(), gen);
             }
         }
+
+        // for (int sampleId = 0; sampleId < sampleSize; sampleId++){
+        //     int nStepToDo = poissonDistr(gen);
+        //     for (int moves = 0; moves < nStepToDo;) {
+        //         moves += perturbate(ranks, currentSamples[sampleId], enrichmentScores.back(), gen);
+        //     }
+        // }
 
         duplicateSamples();
 
