@@ -130,16 +130,27 @@ void EsRuler::extend(double ES, int seed, double eps) {
             }
         }
 
-        for (int moves = 0; moves < movesScale * sampleSize * pathwaySize;) {
-            for (int sampleId = 0; sampleId < sampleSize; sampleId++) {
-                int nSuccessPerLevel = perturbate(ranks, pathwaySize, samplesChunks[sampleId], enrichmentScores.back(), gen);
-                moves += nSuccessPerLevel;
+        // for (int moves = 0; moves < movesScale * sampleSize * pathwaySize;) {
+        //     for (int sampleId = 0; sampleId < sampleSize; sampleId++) {
+        //         int nSuccessPerLevel = perturbate(ranks, pathwaySize, samplesChunks[sampleId], enrichmentScores.back(), gen);
+        //         moves += nSuccessPerLevel;
+        //
+        //         nTotal += nTriesPerLevel;
+        //     }
+        //
+        //
+        // }
 
-                nTotal += nTriesPerLevel;
+        poisson_distribution<int> poissonDistr(movesScale * pathwaySize);
+        for (int sampleId = 0; sampleId < sampleSize; sampleId++){
+            int nStepToDo = poissonDistr(gen);
+            for (int moves = 0; moves < nStepToDo;) {
+                // moves += perturbate(ranks, currentSamples[sampleId], enrichmentScores.back(), gen);
+                moves += perturbate(ranks, pathwaySize, samplesChunks[sampleId], enrichmentScores.back(), gen);
             }
-
-
         }
+
+
 
         for (int i = 0; i < sampleSize; ++i) {
             currentSamples[i].clear();
