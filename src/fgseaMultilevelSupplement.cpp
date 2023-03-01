@@ -465,11 +465,11 @@ int perturbate(const vector<double> &ranks, vector<int> &sample, double bound, m
                 swap(sample[id], sample[id + 1]);
                 id++;
             }
-        }
-        moves++;
-        // } else {
-        //     moves++;
         // }
+        // moves++;
+        } else {
+            moves++;
+        }
         NS += ranks[sample[id]];
     }
     return moves;
