@@ -179,10 +179,26 @@ pair<double, bool> EsRuler::getPvalue(double ES, double eps, bool sign) {
     (it - enrichmentScores.begin()) > 0 ? (indx = (it - enrichmentScores.begin())) : indx = 0;
 
     unsigned long k = (indx) / halfSize;
-    unsigned long remainder = sampleSize -  (indx % halfSize);
 
-    double adjLog = betaMeanLog(halfSize, sampleSize);
-    double adjLogPval = k * adjLog + betaMeanLog(remainder + 1, sampleSize);
+    double adjLogPval = 0;
+    for (unsigned long i = 0; i < k; i++){
+        double boundary = enrichmentScores[(i + 1) * halfSize - 1];
+        unsigned neq = 0;
+        for (unsigned long j = 0; j < halfSize - 1; j++){
+            if (enrichmentScores[i * halfSize + j] == boundary){
+                neq++;
+            }
+        }
+        adjLogPval += betaMeanLog(halfSize + neq, sampleSize);
+    }
+
+
+
+    unsigned long remainder = sampleSize -  (indx % halfSize);
+    adjLogPval += betaMeanLog(remainder + 1, sampleSize);
+
+    // double adjLog = betaMeanLog(halfSize, sampleSize);
+    // double adjLogPval = k * adjLog + betaMeanLog(remainder + 1, sampleSize);
 
     if (sign) {
         return make_pair(max(0.0, min(1.0, exp(adjLogPval))), true);
