@@ -16,7 +16,7 @@ std::vector<int> combination(const int &a, const int &b, const int &k, std::mt19
 
     if (k < n * 1.0 / 2){
         for (int i = 0; i < k; i++) {
-            for (int j = 0; j < 100; j++) { // average < 2
+            for (int j = 0; ; j++) { // average < 2
                 int x = uni();
                 if (!used[x - a]) {
                     v.push_back(x);

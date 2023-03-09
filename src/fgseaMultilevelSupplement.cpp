@@ -1,4 +1,5 @@
 #include "fgseaMultilevelSupplement.h"
+#include <Rcpp.h>
 
 
 double betaMeanLog(unsigned long a, unsigned long b) {
@@ -92,6 +93,11 @@ void EsRuler::extend(double ES, int seed, double eps) {
         sort(currentSamples[sampleId].begin(), currentSamples[sampleId].end());
 
         double currentES = calcES(ranks, currentSamples[sampleId]);
+        // Rcpp::Rcout << "ES=" << currentES << "\n";
+        for (auto x: currentSamples[sampleId]) {
+            // Rcpp::Rcout << x << " ";
+        }
+        // Rcpp::Rcout << "\n";
     }
 
     chunksNumber = max(1, (int) sqrt(pathwaySize));
@@ -104,8 +110,10 @@ void EsRuler::extend(double ES, int seed, double eps) {
 
     double nTotal = 0;
     int nTriesPerLevel = max(1, (int) (pathwaySize * 0.1));
-
+    int xxx = 0;
     while (enrichmentScores.back() <= ES - 1e-10){
+        xxx++;
+        // std::cerr << "ES.back: " << enrichmentScores.back() << " " << xxx << "\n";
         for (int i = 0, pos = 0; i < chunksNumber - 1; ++i) {
             pos += (pathwaySize + i) / chunksNumber;
             for (int j = 0; j < sampleSize; ++j) {
@@ -185,11 +193,14 @@ pair<double, bool> EsRuler::getPvalue(double ES, double eps, bool sign) {
         double boundary = enrichmentScores[(i + 1) * halfSize - 1];
         unsigned neq = 0;
         for (unsigned long j = 0; j < halfSize - 1; j++){
-            if (enrichmentScores[i * halfSize + j] == boundary){
+            if (enrichmentScores[i * halfSize + j] >= boundary - 1e-9){
                 neq++;
             }
         }
         adjLogPval += betaMeanLog(halfSize + neq, sampleSize);
+        // Rcpp::Rcout << "boundary: " << boundary << "\tp: ";
+        // Rcpp::Rcout << exp(betaMeanLog(halfSize + neq, sampleSize)) << "\tratio: ";
+        // Rcpp::Rcout << 1.0 * (halfSize + neq)/ (sampleSize + 1) << "\n";
     }
 
 
@@ -292,7 +303,7 @@ int EsRuler::perturbate(const vector<double> &ranks, int k, EsRuler::SampleChunk
 
         double q2 = 1.0 / NS;
 
-        if (hasCand && -q1 * candX + q2 * candY > bound) {
+        if (hasCand && -q1 * candX + q2 * candY >= bound - 1e-9) {
             ++moves;
             continue;
         }
@@ -312,7 +323,7 @@ int EsRuler::perturbate(const vector<double> &ranks, int k, EsRuler::SampleChunk
                 for (int pos : sampleChunks.chunks[i]) {
                     curY += ranks[pos];
                     curX += pos - last - 1;
-                    if (q2 * curY - q1 * curX > bound) {
+                    if (q2 * curY - q1 * curX >= bound - 1e-9) {
                         ok = true;
                         hasCand = true;
                         candX = curX;
