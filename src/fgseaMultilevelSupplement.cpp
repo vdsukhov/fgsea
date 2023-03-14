@@ -138,15 +138,20 @@ void EsRuler::extend(double ES, int seed, double eps) {
             }
         }
 
-        for (int moves = 0; moves < movesScale * sampleSize * pathwaySize;) {
-            for (int sampleId = 0; sampleId < sampleSize; sampleId++) {
-                int nSuccessPerLevel = perturbate(ranks, pathwaySize, samplesChunks[sampleId], enrichmentScores.back(), gen);
-                moves += nSuccessPerLevel;
+        // for (int moves = 0; moves < movesScale * sampleSize * pathwaySize;) {
+        //     for (int sampleId = 0; sampleId < sampleSize; sampleId++) {
+        //         int nSuccessPerLevel = perturbate(ranks, pathwaySize, samplesChunks[sampleId], enrichmentScores.back(), gen);
+        //         moves += nSuccessPerLevel;
+        //
+        //         nTotal += nTriesPerLevel;
+        //     }
+        // }
 
-                nTotal += nTriesPerLevel;
+        vector<int> moves(sampleSize, 0);
+        while (*min_element(begin(moves), end(moves)) < movesScale * pathwaySize){
+            for (int sampleId = 0; sampleId < sampleSize; sampleId++){
+                moves[sampleId] += perturbate(ranks, pathwaySize, samplesChunks[sampleId], enrichmentScores.back(), gen);
             }
-
-
         }
 
         for (int i = 0; i < sampleSize; ++i) {
