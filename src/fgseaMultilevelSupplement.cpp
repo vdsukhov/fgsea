@@ -138,15 +138,21 @@ void EsRuler::extend(double ES, int seed, double eps) {
             }
         }
 
+        int nStepsPerLevel = 0;
+        int nSuccessPerLevel = 0;
+
         for (int moves = 0; moves < movesScale * sampleSize * pathwaySize;) {
             for (int sampleId = 0; sampleId < sampleSize; sampleId++) {
-                int nSuccessPerLevel = perturbate(ranks, pathwaySize, samplesChunks[sampleId], enrichmentScores.back(), gen);
-                moves += nSuccessPerLevel;
-
+                int nSuccess = perturbate(ranks, pathwaySize, samplesChunks[sampleId], enrichmentScores.back(), gen);
+                moves += nSuccess;
                 nTotal += nTriesPerLevel;
+
+                nStepsPerLevel += nTriesPerLevel;
+                nSuccessPerLevel += nSuccess;
             }
-
-
+        }
+        if (logStatus){
+            Rcpp::Rcout << "acceptance rate = " << 1.0 * nSuccessPerLevel / nStepsPerLevel << "\n";
         }
 
         for (int i = 0; i < sampleSize; ++i) {
@@ -166,9 +172,10 @@ void EsRuler::extend(double ES, int seed, double eps) {
             }
         }
     }
-    if (logStatus){
-        Rcpp::Rcout << nTotal << "\n";
-    }
+    // if (logStatus){
+        // Rcpp::Rcout <<
+        // Rcpp::Rcout << nTotal << "\n";
+    // }
 }
 
 
