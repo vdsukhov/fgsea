@@ -6,6 +6,15 @@ double betaMeanLog(unsigned long a, unsigned long b) {
     return boost::math::digamma(a) - boost::math::digamma(b + 1);
 }
 
+// double getErrorPerLevel(unsigned long k, unsigned long n){
+//     return sqrt(boost::math::trigamma(k) - boost::math::trigamma(n + 1)) / log(2);
+// }
+
+double getVarPerLevel(unsigned long k, unsigned long n){
+    return boost::math::trigamma(k) - boost::math::trigamma(n + 1);
+}
+
+
 pair<double, bool> calcLogCorrection(const vector<unsigned int> &probCorrector,
                                      long probCorrIndx, unsigned int sampleSize){
     double result = 0.0;
@@ -110,9 +119,9 @@ void EsRuler::extend(double ES, int seed, double eps) {
 
     double nTotal = 0;
     int nTriesPerLevel = max(1, (int) (pathwaySize * 0.1));
-    int xxx = 0;
+    // int xxx = 0;
     while (enrichmentScores.back() <= ES - 1e-10){
-        xxx++;
+        // xxx++;
         // std::cerr << "ES.back: " << enrichmentScores.back() << " " << xxx << "\n";
         for (int i = 0, pos = 0; i < chunksNumber - 1; ++i) {
             pos += (pathwaySize + i) / chunksNumber;
@@ -179,7 +188,8 @@ void EsRuler::extend(double ES, int seed, double eps) {
 }
 
 
-pair<double, bool> EsRuler::getPvalue(double ES, double eps, bool sign) {
+// pair<double, bool> EsRuler::getPvalue(double ES, double eps, bool sign) {
+tuple <double, bool, double> EsRuler::getPvalue(double ES, double eps, bool sign){
     unsigned long halfSize = (sampleSize + 1) / 2;
 
     auto it = enrichmentScores.begin();
@@ -196,6 +206,10 @@ pair<double, bool> EsRuler::getPvalue(double ES, double eps, bool sign) {
     unsigned long k = (indx) / halfSize;
 
     double adjLogPval = 0;
+    double lvlsVar = 0;
+
+    Rcpp::Rcout << "i" << "\tk" << "\tn" << "\tlvl var" << "\tlogp\n";
+
     for (unsigned long i = 0; i < k; i++){
         double boundary = enrichmentScores[(i + 1) * halfSize - 1];
         unsigned neq = 0;
@@ -205,11 +219,18 @@ pair<double, bool> EsRuler::getPvalue(double ES, double eps, bool sign) {
             }
         }
         adjLogPval += betaMeanLog(halfSize + neq, sampleSize);
+        lvlsVar += getVarPerLevel(halfSize + neq, sampleSize);
+
+
+        Rcpp::Rcout << i << "\t" << halfSize + neq << "\t"
+                    << sampleSize << "\t" << getVarPerLevel(halfSize + neq, sampleSize)
+                    << "\t" << betaMeanLog(halfSize + neq, sampleSize) << "\n";
         // Rcpp::Rcout << "boundary: " << boundary << "\tp: ";
         // Rcpp::Rcout << exp(betaMeanLog(halfSize + neq, sampleSize)) << "\tratio: ";
         // Rcpp::Rcout << 1.0 * (halfSize + neq)/ (sampleSize + 1) << "\n";
     }
 
+    double log2err = sqrt(lvlsVar) / log(2);
 
 
     unsigned long remainder = sampleSize -  (indx % halfSize);
@@ -219,11 +240,13 @@ pair<double, bool> EsRuler::getPvalue(double ES, double eps, bool sign) {
     // double adjLogPval = k * adjLog + betaMeanLog(remainder + 1, sampleSize);
 
     if (sign) {
-        return make_pair(max(0.0, min(1.0, exp(adjLogPval))), true);
+        // return make_pair(max(0.0, min(1.0, exp(adjLogPval))), true);
+        return make_tuple(max(0.0, min(1.0, exp(adjLogPval))), true, log2err);
     } else {
         pair<double, bool> correction = calcLogCorrection(probCorrector, indx, sampleSize);
         double resLog = adjLogPval + correction.first;
-        return make_pair(max(0.0, min(1.0, exp(resLog))), correction.second);
+        // return make_pair(max(0.0, min(1.0, exp(resLog))), correction.second);
+        return make_tuple(max(0.0, min(1.0, exp(resLog))), correction.second, log2err);
     }
 }
 

@@ -7,6 +7,7 @@
 #include <cmath>
 #include <algorithm>
 #include <boost/math/special_functions/digamma.hpp>
+#include <boost/math/special_functions/trigamma.hpp>
 
 #include "esCalculation.h"
 #include "util.h"
@@ -57,10 +58,13 @@ public:
 
     void extend(double ES, int seed, double eps);
 
-    pair<double, bool> getPvalue(double ES, double eps, bool sign);
+    // pair<double, bool> getPvalue(double ES, double eps, bool sign);
+    tuple <double, bool, double> getPvalue(double ES, double eps, bool sign);
 };
 
 double betaMeanLog(unsigned long a, unsigned long b);
+// double getErrorPerLevel(unsigned long k, unsigned long n);
+double getVarPerLevel(unsigned long k, unsigned long n);
 
 pair<double, bool> calcLogCorrection(const vector<unsigned int> &probCorrector,
                                      long probCorrIndx, unsigned int sampleSize);
