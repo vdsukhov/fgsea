@@ -30,7 +30,8 @@ private:
 
     vector<unsigned int> probCorrector;
 
-    void duplicateSamples();
+    // void duplicateSamples();
+    void resampleGenesets(mt19937 &rng);
 
     vector<int> chunkLastElement;
     int chunksNumber;

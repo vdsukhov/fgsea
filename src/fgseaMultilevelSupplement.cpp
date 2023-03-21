@@ -48,12 +48,57 @@ EsRuler::EsRuler(const vector<double> &inpRanks,
 
 EsRuler::~EsRuler() = default;
 
-void EsRuler::duplicateSamples() {
+// void EsRuler::duplicateSamples() {
+//     /*
+//      * Removes samples with an enrichment score less than the median value and
+//      * replaces them with samples with an enrichment score greater than the median
+//      * value
+//     */
+//
+//     /*
+//      * Removes samples with an enrichment score less than the median value and
+//      * replaces them with samples with an enrichment score greater than the median
+//      * value
+//      */
+//     vector<pair<double, int> > stats(sampleSize);
+//     vector<int> posEsIndxs;
+//     int totalPosEsCount = 0;
+//
+//     for (int sampleId = 0; sampleId < sampleSize; sampleId++) {
+//         double sampleEsPos = calcPositiveES(ranks, currentSamples[sampleId]);
+//         double sampleEs = calcES(ranks, currentSamples[sampleId]);
+//         if (sampleEs > 0) {
+//             totalPosEsCount++;
+//             posEsIndxs.push_back(sampleId);
+//         }
+//         stats[sampleId] = make_pair(sampleEsPos, sampleId);
+//     }
+//     sort(stats.begin(), stats.end());
+//     for (int sampleId = 0; 2 * sampleId < sampleSize; sampleId++) {
+//         enrichmentScores.push_back(stats[sampleId].first);
+//         if (find(posEsIndxs.begin(), posEsIndxs.end(), stats[sampleId].second) != posEsIndxs.end()) {
+//             totalPosEsCount--;
+//         }
+//         probCorrector.push_back(totalPosEsCount);
+//     }
+//
+//     vector<vector<int> > new_sets;
+//     for (int sampleId = 0; 2 * sampleId < sampleSize - 2; sampleId++) {
+//         for (int rep = 0; rep < 2; rep++) {
+//             new_sets.push_back(currentSamples[stats[sampleSize - 1 - sampleId].second]);
+//         }
+//     }
+//     new_sets.push_back(currentSamples[stats[sampleSize >> 1].second]);
+//     swap(currentSamples, new_sets);
+// }
+
+
+void EsRuler::resampleGenesets(mt19937 &rng) {
     /*
      * Removes samples with an enrichment score less than the median value and
      * replaces them with samples with an enrichment score greater than the median
      * value
-    */
+     */
 
     /*
      * Removes samples with an enrichment score less than the median value and
@@ -82,13 +127,26 @@ void EsRuler::duplicateSamples() {
         probCorrector.push_back(totalPosEsCount);
     }
 
-    vector<vector<int> > new_sets;
-    for (int sampleId = 0; 2 * sampleId < sampleSize - 2; sampleId++) {
-        for (int rep = 0; rep < 2; rep++) {
-            new_sets.push_back(currentSamples[stats[sampleSize - 1 - sampleId].second]);
+    double centralValue = stats[(sampleSize + 1) / 2].first;
+    int startFrom = 0;
+
+    for (int sampleId = 0; sampleId < sampleSize; sampleId++){
+        if (stats[sampleId].first >= centralValue - 1e-9){
+            startFrom = sampleId;
+            break;
         }
     }
-    new_sets.push_back(currentSamples[stats[sampleSize >> 1].second]);
+
+    uniform_int_distribution<> uid(0, sampleSize - startFrom - 1);
+
+
+    vector<vector<int> > new_sets;
+    for (int i = 0; i < sampleSize; i++){
+        int ind = uid(rng) + startFrom;
+        // Rcpp::Rcout << ind << " ";
+        new_sets.push_back(currentSamples[stats[ind].second]);
+    }
+
     swap(currentSamples, new_sets);
 }
 
@@ -115,7 +173,8 @@ void EsRuler::extend(double ES, int seed, double eps) {
     vector<int> tmp(sampleSize);
     vector<SampleChunks> samplesChunks(sampleSize, SampleChunks(chunksNumber));
 
-    duplicateSamples();
+    // duplicateSamples();
+    resampleGenesets(gen);
 
     double nTotal = 0;
     int nTriesPerLevel = max(1, (int) (pathwaySize * 0.1));
@@ -173,7 +232,8 @@ void EsRuler::extend(double ES, int seed, double eps) {
             }
         }
 
-        duplicateSamples();
+        // duplicateSamples();
+        resampleGenesets(gen);
         if (eps != 0){
             unsigned long k = enrichmentScores.size() / ((sampleSize + 1) / 2);
             if (k > - log2(0.5 * eps)) {
@@ -208,7 +268,10 @@ tuple <double, bool, double> EsRuler::getPvalue(double ES, double eps, bool sign
     double adjLogPval = 0;
     double lvlsVar = 0;
 
-    Rcpp::Rcout << "i" << "\tk" << "\tn" << "\tlvl var" << "\tlogp\n";
+    if (logStatus){
+        Rcpp::Rcout << "i" << "\tk" << "\tn" << "\tlvl var" << "\tlogp\n";
+    }
+
 
     for (unsigned long i = 0; i < k; i++){
         double boundary = enrichmentScores[(i + 1) * halfSize - 1];
@@ -222,12 +285,12 @@ tuple <double, bool, double> EsRuler::getPvalue(double ES, double eps, bool sign
         lvlsVar += getVarPerLevel(halfSize + neq, sampleSize);
 
 
-        Rcpp::Rcout << i << "\t" << halfSize + neq << "\t"
-                    << sampleSize << "\t" << getVarPerLevel(halfSize + neq, sampleSize)
-                    << "\t" << betaMeanLog(halfSize + neq, sampleSize) << "\n";
-        // Rcpp::Rcout << "boundary: " << boundary << "\tp: ";
-        // Rcpp::Rcout << exp(betaMeanLog(halfSize + neq, sampleSize)) << "\tratio: ";
-        // Rcpp::Rcout << 1.0 * (halfSize + neq)/ (sampleSize + 1) << "\n";
+        if (logStatus){
+            Rcpp::Rcout << i << "\t" << halfSize + neq << "\t"
+                        << sampleSize << "\t" << getVarPerLevel(halfSize + neq, sampleSize)
+                        << "\t" << betaMeanLog(halfSize + neq, sampleSize) << "\n";
+        }
+
     }
 
     double log2err = sqrt(lvlsVar) / log(2);
