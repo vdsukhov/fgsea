@@ -23,6 +23,7 @@ private:
     const unsigned int pathwaySize;
     const double movesScale;
     const bool logStatus;
+    bool incorrectRuler = false;
 
 
     vector<double> enrichmentScores;

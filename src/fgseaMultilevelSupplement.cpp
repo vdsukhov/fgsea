@@ -152,6 +152,7 @@ void EsRuler::resampleGenesets(mt19937 &rng) {
 
 EsRuler::SampleChunks::SampleChunks(int chunksNumber) : chunkSum(chunksNumber), chunks(chunksNumber) {}
 
+
 void EsRuler::extend(double ES, int seed, double eps) {
     mt19937 gen(seed);
 
@@ -159,11 +160,11 @@ void EsRuler::extend(double ES, int seed, double eps) {
         currentSamples[sampleId] = combination(0, ranks.size() - 1, pathwaySize, gen);
         sort(currentSamples[sampleId].begin(), currentSamples[sampleId].end());
 
-        double currentES = calcES(ranks, currentSamples[sampleId]);
+        // double currentES = calcES(ranks, currentSamples[sampleId]);
         // Rcpp::Rcout << "ES=" << currentES << "\n";
-        for (auto x: currentSamples[sampleId]) {
+        // for (auto x: currentSamples[sampleId]) {
             // Rcpp::Rcout << x << " ";
-        }
+        // }
         // Rcpp::Rcout << "\n";
     }
 
@@ -178,10 +179,15 @@ void EsRuler::extend(double ES, int seed, double eps) {
 
     double nTotal = 0;
     int nTriesPerLevel = max(1, (int) (pathwaySize * 0.1));
+
+    double lastScore = enrichmentScores.back();
+
     // int xxx = 0;
     while (enrichmentScores.back() <= ES - 1e-10){
         // xxx++;
         // std::cerr << "ES.back: " << enrichmentScores.back() << " " << xxx << "\n";
+        // Rcpp::Rcout << "ES.back: " << enrichmentScores.back() << " " << xxx << "\n";
+
         for (int i = 0, pos = 0; i < chunksNumber - 1; ++i) {
             pos += (pathwaySize + i) / chunksNumber;
             for (int j = 0; j < sampleSize; ++j) {
@@ -234,6 +240,14 @@ void EsRuler::extend(double ES, int seed, double eps) {
 
         // duplicateSamples();
         resampleGenesets(gen);
+        // Rcpp::Rcout << "last score: " << lastScore << "\t back: " << enrichmentScores.back() << "\n";
+        if (lastScore == enrichmentScores.back()){
+            incorrectRuler = true;
+            break;
+        }
+
+        lastScore = enrichmentScores.back();
+
         if (eps != 0){
             unsigned long k = enrichmentScores.size() / ((sampleSize + 1) / 2);
             if (k > - log2(0.5 * eps)) {
@@ -241,6 +255,8 @@ void EsRuler::extend(double ES, int seed, double eps) {
             }
         }
     }
+
+
     // if (logStatus){
         // Rcpp::Rcout <<
         // Rcpp::Rcout << nTotal << "\n";
@@ -250,15 +266,25 @@ void EsRuler::extend(double ES, int seed, double eps) {
 
 // pair<double, bool> EsRuler::getPvalue(double ES, double eps, bool sign) {
 tuple <double, bool, double> EsRuler::getPvalue(double ES, double eps, bool sign){
+    if (incorrectRuler){
+        return make_tuple(std::nan("1"), true, std::nan("1"));
+    }
+
+
     unsigned long halfSize = (sampleSize + 1) / 2;
 
     auto it = enrichmentScores.begin();
+    // Rcpp::Rcout << "enrichmentScores.end(): " << *(enrichmentScores.end() - 1) << "\n";
+    // Rcpp::Rcout << "diff: " << *(enrichmentScores.end() - 1) - ES << "\n";
     if (ES >= enrichmentScores.back()){
+        // Rcpp::Rcout << "1st branch\n";
         it = enrichmentScores.end() - 1;
     }
     else{
+        // Rcpp::Rcout << "2nd branch\n";
         it = lower_bound(enrichmentScores.begin(), enrichmentScores.end(), ES);
     }
+
 
     unsigned long indx = 0;
     (it - enrichmentScores.begin()) > 0 ? (indx = (it - enrichmentScores.begin())) : indx = 0;
@@ -269,7 +295,7 @@ tuple <double, bool, double> EsRuler::getPvalue(double ES, double eps, bool sign
     double lvlsVar = 0;
 
     if (logStatus){
-        Rcpp::Rcout << "i" << "\tk" << "\tn" << "\tlvl var" << "\tlogp\n";
+        Rcpp::Rcout << "i" << "\tk" << "\tn" << "\tlvl var" << "\tlogp" << "\tscore\n";
     }
 
 
@@ -288,7 +314,7 @@ tuple <double, bool, double> EsRuler::getPvalue(double ES, double eps, bool sign
         if (logStatus){
             Rcpp::Rcout << i << "\t" << halfSize + neq << "\t"
                         << sampleSize << "\t" << getVarPerLevel(halfSize + neq, sampleSize)
-                        << "\t" << betaMeanLog(halfSize + neq, sampleSize) << "\n";
+                        << "\t" << betaMeanLog(halfSize + neq, sampleSize) << "\t" << boundary << "\n";
         }
 
     }
@@ -298,7 +324,7 @@ tuple <double, bool, double> EsRuler::getPvalue(double ES, double eps, bool sign
 
     unsigned long remainder = sampleSize -  (indx % halfSize);
     adjLogPval += betaMeanLog(remainder + 1, sampleSize);
-
+    // Rcpp::Rcout << "remainder: " << remainder << " " << indx << " " << halfSize << "\n";
     // double adjLog = betaMeanLog(halfSize, sampleSize);
     // double adjLogPval = k * adjLog + betaMeanLog(remainder + 1, sampleSize);
 
