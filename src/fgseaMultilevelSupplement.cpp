@@ -306,7 +306,7 @@ tuple <double, bool, double> EsRuler::getPvalue(double ES, double eps, bool sign
             // if (enrichmentScores[i * halfSize + j] >= boundary - 1e-9){
             //     neq++;
             // }
-            if (fabs(enrichmentScores[i * halfSize + j] - boundary) <= 1e-5){
+            if (fabs(enrichmentScores[i * halfSize + j] - boundary) <= 1e-9){
                 neq++;
             }
         }
