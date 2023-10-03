@@ -241,7 +241,8 @@ void EsRuler::extend(double ES, int seed, double eps) {
         // duplicateSamples();
         resampleGenesets(gen);
         // Rcpp::Rcout << "last score: " << lastScore << "\t back: " << enrichmentScores.back() << "\n";
-        if (lastScore == enrichmentScores.back()){
+        // Previously: lastScore == enrichmentScores.back()
+        if (fabs(lastScore - enrichmentScores.back()) <= 1e-9){
             incorrectRuler = true;
             break;
         }
